@@ -12,7 +12,8 @@ public class HiberSpeed {
     private boolean debug = false;
 
     public enum dialect{
-        postgreSQL95
+        postgreSQL95,
+        mySQL
     }
 
     public HiberSpeed(String dataPackage, String userName, String passWord, String url){
@@ -27,10 +28,20 @@ public class HiberSpeed {
             if (debug) System.out.println("Found: " + c);
             configuration.addAnnotatedClass(c);
         });
-        configuration.setProperty("hibernate.dialect","org.hibernate.dialect.PostgreSQL95Dialect");
-        configuration.setProperty("hibernate.connection.username","postgres");
+
+        configuration.setProperty("hibernate.connection.username",userName);
         configuration.setProperty("hibernate.connection.password",passWord);
-        configuration.setProperty("hibernate.connection.url","jdbc:postgresql://localhost:5432/hibernatedb");
+        switch (dialect) {
+            case postgreSQL95 -> {
+                configuration.setProperty("hibernate.dialect","org.hibernate.dialect.PostgreSQL95Dialect");
+                configuration.setProperty("hibernate.connection.url","jdbc:postgresql://" + url );
+            }
+            case mySQL -> {
+                configuration.setProperty("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+                configuration.setProperty("hibernate.connection.url","jdbc:mysql://" + url );
+            }
+        }
+
         configuration.setProperty("hibernate.hbm2ddl.auto","update");
         this.sessionFactory = configuration.buildSessionFactory();
 
