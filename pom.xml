@@ -22,7 +22,7 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/cbudtz/HiberSpeed</url>
+        <url>https://github.com/cbudtz/HiberSpeed.git</url>
     </scm>
 
     <properties>

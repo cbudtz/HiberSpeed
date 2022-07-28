@@ -9,10 +9,10 @@ public class SetupTest {
     @Test
     public void testSetup(){
         HiberSpeed hiberSpeed = new HiberSpeed("data",
-                "pg", "NwMaU4ERWvJR5fMM",
+                "pg", System.getenv("hiberPass"),
                 "testpg-db.caprover.diplomportal.dk:5432/pg", HiberSpeed.Dialect.postgreSQL, HiberSpeed.SchemaGeneration.update,
                 true);
-        try (Session session = hiberSpeed.getSessionFactory().openSession()) {
+        try (Session session = hiberSpeed.openSession()) {
             Transaction transaction = session.beginTransaction();
             TestDto testDto = new TestDto();
             session.persist(testDto);
