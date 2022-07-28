@@ -1,6 +1,7 @@
 package org.budtz;
 
 import jakarta.persistence.Entity;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 import org.reflections.Reflections;
@@ -10,10 +11,11 @@ import java.util.Set;
 public class HiberSpeed {
     private SessionFactory sessionFactory;
 
-    private boolean debug = false;
-
     public SessionFactory getSessionFactory() {
         return sessionFactory;
+    }
+    public Session openSession(){
+        return sessionFactory.openSession();
     }
 
     public enum Dialect {
@@ -21,7 +23,34 @@ public class HiberSpeed {
         mySQL
     }
     public enum SchemaGeneration {
-        none, createonly, drop, create, createdrop,validate,update
+        /**
+         * Makes no changes to schema in the database
+         */
+        none,
+        /**
+         * Creates Schema, preserving existing data.
+         */
+        createonly,
+        /**
+         * Drops Schema matching entities.
+         */
+        drop,
+        /**
+         * Creates Schema, <b>destroys</b> previous data.
+         */
+        create,
+        /**
+         * Creates Schema, <b>destroys</b> previous data. Also drops Schema on sessionFactory close.
+         */
+        createdrop,
+        /**
+         * Validates that Schema matches entities.
+         */
+        validate,
+        /**
+         * Updates existing Schema, preserving data.
+         */
+        update
     }
 
     /**
@@ -37,12 +66,15 @@ public class HiberSpeed {
     }
 
     public HiberSpeed(String dataPackage, String userName, String passWord, String url, Dialect dialect, SchemaGeneration schemaGeneration, boolean debug) {
-        this.debug=debug;
         Configuration configuration = new Configuration();
         Reflections reflections = new Reflections(dataPackage);
         Set<Class<?>> entities = reflections.getTypesAnnotatedWith(Entity.class);
         entities.forEach((Class<?> c) -> {
-            if (debug) System.out.println("Found: " + c);
+            if (debug) {
+                System.out.println("Found: " + c);
+                configuration.setProperty("hibernate.show_sql", "true");
+                configuration.setProperty("log4j.logger.org.hibernate", "info");
+            }
             configuration.addAnnotatedClass(c);
         });
 
@@ -50,7 +82,7 @@ public class HiberSpeed {
         configuration.setProperty("hibernate.connection.password",passWord);
         System.out.println("Database: " + dialect);
         switch (dialect) {
-            case postgreSQL -> 
+            case postgreSQL ->
                 configuration.setProperty("hibernate.connection.url","jdbc:postgresql://" + url );
             case mySQL ->
                 configuration.setProperty("hibernate.connection.url","jdbc:mysql://" + url );
@@ -68,6 +100,7 @@ public class HiberSpeed {
 
         configuration.setProperty("hibernate.hbm2ddl.auto",hbm2dll);
         this.sessionFactory = configuration.buildSessionFactory();
+
 
     }
 
