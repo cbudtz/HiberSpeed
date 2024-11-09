@@ -55,7 +55,7 @@ public class HiberSpeed {
 
     /**
      *
-     * @param dataPackage Package name for package containing Enities for mapping
+     * @param dataPackage Package name for package containing Entities for mapping
      * @param userName Database username
      * @param passWord Database password
      * @param url url/IP for db. Format: ip|url{:port}{/defaultdb} - {optional}
@@ -66,18 +66,22 @@ public class HiberSpeed {
     }
 
     public HiberSpeed(String dataPackage, String userName, String passWord, String url, Dialect dialect, SchemaGeneration schemaGeneration, boolean debug) {
+        if (userName==null || passWord==null){
+            throw new IllegalArgumentException("Username and password must be set");
+        }
         Configuration configuration = new Configuration();
         Reflections reflections = new Reflections(dataPackage);
         Set<Class<?>> entities = reflections.getTypesAnnotatedWith(Entity.class);
         entities.forEach((Class<?> c) -> {
             if (debug) {
                 System.out.println("Found: " + c);
-                configuration.setProperty("hibernate.show_sql", "true");
-                configuration.setProperty("log4j.logger.org.hibernate", "info");
             }
             configuration.addAnnotatedClass(c);
         });
-
+        if (debug) {
+            configuration.setProperty("hibernate.show_sql", "true");
+            configuration.setProperty("log4j.logger.org.hibernate", "info");
+        }
         configuration.setProperty("hibernate.connection.username",userName);
         configuration.setProperty("hibernate.connection.password",passWord);
         System.out.println("Database: " + dialect);
@@ -96,8 +100,7 @@ public class HiberSpeed {
             case validate -> "validate";
             case update -> "update";
         };
-        System.out.println("SchemaGeneration: " + hbm2dll);
-
+        System.out.println("HiberspeedSchemaGeneration: " + hbm2dll);
         configuration.setProperty("hibernate.hbm2ddl.auto",hbm2dll);
         this.sessionFactory = configuration.buildSessionFactory();
 
